@@ -8,15 +8,15 @@
 class turn
 {
     public:
+        turn();
         enum colours
         {
             red=0,
             green=1,
             blue=2
         };
-        void add(unsigned count, colours col);
+        void set(unsigned count, colours col);
         bool check();
-    private:
         std::array<unsigned, 3> values;
 };
 
@@ -55,9 +55,16 @@ bool turn::check()
     return false;
 }
 
-void turn::add(unsigned count, colours col)
+turn::turn()
 {
-    values[(unsigned)col] += count;
+    values[0] = 0;
+    values[1] = 0;
+    values[2] = 0;
+}
+
+void turn::set(unsigned count, colours col)
+{
+    values[(unsigned)col] = count;
 }
 
 bool game::check()
@@ -66,6 +73,7 @@ bool game::check()
     {
         if (t.check() == false)
         {
+            std::cout << id << '\n';
             return false;
         }
     }
@@ -75,6 +83,7 @@ bool game::check()
 game::game(std::string line)
 {
     std::stringstream ss(line);
+    turns.clear();
 
     std::string tmp;
     ss >> tmp;
@@ -98,15 +107,15 @@ game::game(std::string line)
 
             if (colour == "red")
             {
-                newTurn.add(count, turn::red);
+                newTurn.set(count, turn::red);
             }
             else if (colour == "blue")
             {
-                newTurn.add(count, turn::blue);
+                newTurn.set(count, turn::blue);
             }
             else if (colour == "green")
             {
-                newTurn.add(count, turn::green);
+                newTurn.set(count, turn::green);
             }
 
             if (back == ';' || back != ',')
