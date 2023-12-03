@@ -25,6 +25,7 @@ class game
     public:
         game(std::string line);
         bool check();
+        unsigned minMult();
         unsigned id;
     private:
         std::vector<turn> turns;
@@ -36,6 +37,7 @@ class games
         games(std::ifstream *file);
         void print();
         unsigned sum();
+        unsigned mults();
     private:
         std::vector<game> data;
 };
@@ -138,6 +140,38 @@ unsigned games::sum()
     return total;
 }
 
+unsigned game::minMult()
+{
+    std::array<unsigned,3> maxVals = {0,0,0};
+    for (auto t : turns)
+    { 
+        for (unsigned i=0; i<3; i++)
+        {
+            if (maxVals[i] < t.values[i])
+            {
+                maxVals[i] = t.values[i];
+            }
+        }
+    }
+    unsigned out=1;
+    for (auto i : maxVals)
+    {
+        out *= i;
+    }
+    return out;
+}
+
+unsigned games::mults()
+{
+    unsigned total=0;
+    for (auto g : data)
+    {
+        std::cout << g.minMult() << '\n';
+        total += g.minMult();
+    }
+    return total;
+}
+
 games::games(std::ifstream *file)
 {
     std::string gameStr;
@@ -155,5 +189,5 @@ int main()
 
     games gameData(&file);
     
-    std::cout << gameData.sum() << '\n';
+    std::cout << gameData.mults() << '\n';
 }
