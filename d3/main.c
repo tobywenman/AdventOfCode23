@@ -164,6 +164,55 @@ unsigned sum(struct part* parts, size_t numParts, struct schematic sch)
     return count;
 }
 
+unsigned checkGears(struct part* parts, size_t numParts, struct schematic sch)
+{
+    unsigned gears[sch.lines][sch.lineLen];
+    unsigned gearVals[sch.lines][sch.lineLen];
+
+    for (size_t i=0; i<sch.lines; i++)
+    {
+        for (size_t j=0; j<sch.lines; j++)
+        {
+            gears[i][j] = 0;
+            gearVals[i][j] = 1;
+        }
+    }
+
+    for (size_t partIdx=0; partIdx<numParts; partIdx++)
+    {
+        struct part curPart = parts[partIdx];
+        for (size_t i=curPart.mins[0]; i<curPart.maxs[0]+1; i++)
+        {
+            for (size_t j=curPart.mins[1]; j<curPart.maxs[1]+1; j++)
+            {
+                if(sch.data[i][j]=='*')
+                {
+                    gears[i][j]++;
+                    if (gears[i][j]<=2)
+                    {
+                        gearVals[i][j] *= curPart.partNum;
+                    }
+                }
+            }
+        }
+
+    }
+    unsigned count=0;
+
+    for (size_t i=0; i<sch.lines; i++)
+    {
+        for (size_t j=0; j<sch.lines; j++)
+        {
+            if(gears[i][j]==2)
+            {
+                printf("gear found: %zu, %zu\n", i, j);
+                count += gearVals[i][j];
+            }
+        }
+    }
+    return count;
+}
+
 int main()
 {
     FILE *fp;
@@ -180,5 +229,5 @@ int main()
     struct part* stack;
     stack = getPartBounds(sch, &numParts);
 
-    printf("sum: %u\n", sum(stack, numParts, sch));
+    printf("sum: %u\n", checkGears(stack, numParts, sch));
 }
