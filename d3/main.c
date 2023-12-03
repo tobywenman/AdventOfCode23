@@ -10,6 +10,13 @@ struct schematic
     size_t lines;
 };
 
+struct part
+{
+    unsigned partNum;
+    size_t mins[2];
+    size_t maxs[2];
+};
+
 struct schematic initSchematic(FILE *fp)
 {
     struct schematic out;
@@ -21,8 +28,6 @@ struct schematic initSchematic(FILE *fp)
 
     out.lines = 1;
     out.lineLen = (size_t)(getline(&buf, &bufSize, fp)-1);
-
-    printf("line: %s\n", buf);
 
     while (getline(&buf, &bufSize, fp) != -1)
     {
@@ -54,16 +59,126 @@ void printSchematic(struct schematic in)
     }
 }
 
+struct part* growStack(struct part* stack, size_t curSize)
+{
+    size_t newSize = curSize*2;
+
+    return realloc(stack, newSize*sizeof(struct part));
+}
+
+struct part* getPartBounds(struct schematic in, size_t *numParts)
+{
+    size_t stackSize=1;
+    size_t top=0;
+
+    struct part* stack;
+
+    stack = malloc(sizeof(struct part));
+
+    char num[10];
+    size_t numPos = 0;
+
+    struct part newPart;
+
+    for (size_t i=0; i<in.lines; i++)
+    {
+        for (size_t j=0; j<in.lineLen; j++)
+        {
+            if(in.data[i][j] >= 48 && in.data[i][j] <= 57)
+            {
+                if (numPos == 0)
+                {
+                    newPart.mins[0] = (i==0) ? 0 : i-1;
+                    newPart.mins[1] = (j==0) ? 0 : j-1;
+                }
+                num[numPos] = in.data[i][j];
+                numPos++;
+            }
+            else
+            {
+                if (numPos > 0)
+                {
+                    num[numPos] = '\0';
+                    numPos = 0;
+                    newPart.partNum = atoi(num);
+                    newPart.maxs[0] = (i==in.lines-1) ? in.lines-1 : i+1;
+                    newPart.maxs[1] = j;
+
+                    if (top == stackSize)
+                    {
+                        stack = growStack(stack, stackSize);
+                    }
+                    stack[top] = newPart;
+                    top++;
+                }
+            }
+        }
+        if (numPos > 0)
+        {
+            num[numPos] = '\0';
+            numPos = 0;
+            newPart.partNum = atoi(num);
+            newPart.maxs[0] = (i==in.lines-1) ? in.lines-1 : i+1;
+            newPart.maxs[1] = in.lineLen-1;
+
+            if (top == stackSize)
+            {
+                stack = growStack(stack, stackSize);
+            }
+            stack[top] = newPart;
+            top++;
+        }
+    }
+
+    *numParts = top;
+    return stack;
+}
+
+bool checkPart(struct part curPart, struct schematic sch)
+{
+    for (size_t i=curPart.mins[0]; i<curPart.maxs[0]+1; i++)
+    {
+        for (size_t j=curPart.mins[1]; j<curPart.maxs[1]+1; j++)
+        {
+            if((sch.data[i][j] < 48 || sch.data[i][j] > 57) && sch.data[i][j] != '.')
+            {
+                return true;
+            }
+        }
+    }
+    printf("not found: %u\n", curPart.partNum);
+    return false;
+}
+
+unsigned sum(struct part* parts, size_t numParts, struct schematic sch)
+{
+    unsigned count = 0;
+    for (size_t i=0; i<numParts; i++)
+    {
+        if(checkPart(parts[i], sch))
+        {
+            count += parts[i].partNum;
+            printf("found part: %u\n", parts[i].partNum);
+        }
+    }
+    return count;
+}
 
 int main()
 {
     FILE *fp;
 
-    fp = fopen("test.txt", "rb");
+    fp = fopen("data.txt", "rb");
 
     struct schematic sch;
 
     sch = initSchematic(fp);
 
     printSchematic(sch);
+
+    size_t numParts;
+    struct part* stack;
+    stack = getPartBounds(sch, &numParts);
+
+    printf("sum: %u\n", sum(stack, numParts, sch));
 }
