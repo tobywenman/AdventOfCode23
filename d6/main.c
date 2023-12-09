@@ -86,10 +86,23 @@ int main()
 
     struct races _races = getRaces(fp);
 
+    uint64_t count=1;
+
     for (unsigned i=0; i<_races.stackTop; i++)
     {
         printf("time: %lu, dist: %lu\n", _races.data[i].time, _races.data[i].dist);
+
+        unsigned wins=0;
+        for (uint64_t j=0; j<_races.data[i].time+1; j++)
+        {
+            uint64_t dist =  (_races.data[i].time - j)*j;
+            if(dist > _races.data[i].dist)
+            {
+                wins++;
+            }
+        }
+        count *= wins;
     }
 
-    
+    printf("count: %lu\n", count);
 }
