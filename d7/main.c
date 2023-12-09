@@ -24,6 +24,7 @@ unsigned getCardVal(char card)
 {
     switch (card)
     {
+    case 'J': return 1;
     case '2': return 2;
     case '3': return 3;
     case '4': return 4;
@@ -33,7 +34,6 @@ unsigned getCardVal(char card)
     case '8': return 8;
     case '9': return 9;
     case 'T': return 10;
-    case 'J': return 11;
     case 'Q': return 12;
     case 'K': return 13;
     case 'A': return 14;
@@ -60,6 +60,58 @@ enum handType getHandType(const struct hand *in)
             }
         }
     }
+    unsigned max = 0;
+    unsigned pos = 0;
+
+    for (unsigned i=0; i<5; i++)
+    {
+        if (occurances[i] > max && in->cards[i] != 'J')
+        {
+            max = occurances[i];
+            pos = i;
+        }
+    }
+
+    char test[5];
+
+    if (max != 0)
+    {
+        for (unsigned i=0; i<5; i++)
+        {
+            if (in->cards[i] == 'J')
+            {
+                test[i] = in->cards[pos];
+            }
+            else
+            {
+                test[i] = in->cards[i];
+            }
+        }
+    }
+    else
+    {
+        for (unsigned i=0; i<5; i++)
+        {
+            test[i] = 'A';
+        }
+    }
+
+    for (unsigned i=0; i<5; i++)
+    {
+        occurances[i]=1;
+
+        for (unsigned j=0; j<5; j++)
+        {
+            if (i != j)
+            {
+                if(test[i] == test[j])
+                {
+                    occurances[i]++;
+                }
+            }
+        }
+    }
+
     unsigned three = 0;
     unsigned pairs = 0;
 
