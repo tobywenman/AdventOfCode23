@@ -17,12 +17,14 @@ def solveNum(data):
             values[-1].append(0)
             break
     
-    prev = values[-1][-1]
+    prev = values[-1][0]
     for i in reversed(values[:-1]):
-        i.append(i[-1] + prev)
-        prev = i[-1]
+        i.insert(0,i[0]-prev)
+        prev = i[0]
     
-    return values[0][-1]
+    print(values)
+
+    return values[0][0]
 
 with open("data.txt", "r") as file:
     data = []
