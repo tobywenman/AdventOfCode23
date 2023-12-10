@@ -10,6 +10,8 @@ def findRoute(path, grid, dir):
     curSym = grid[path[-1][0]][path[-1][1]]
 
     if curSym == "S":
+        path[0][2] = path[-1][2]
+        path.pop(0)
         return True
 
     nextDirs = {("|", 0):0,
@@ -32,19 +34,19 @@ def findRoute(path, grid, dir):
     elif nextDir == 0:
         if path[-1][0] == 0:
             return False
-        path.append([path[-1][0]-1,path[-1][1]])
+        path.append([path[-1][0]-1,path[-1][1],0])
     elif nextDir == 1:
         if path[-1][0] == len(grid)-1:
             return False
-        path.append([path[-1][0]+1,path[-1][1]])
+        path.append([path[-1][0]+1,path[-1][1],1])
     elif nextDir == 2:
         if path[-1][1] == len(grid[0])-1:
             return False
-        path.append([path[-1][0],path[-1][1]+1])
+        path.append([path[-1][0],path[-1][1]+1,2])
     elif nextDir == 3:
         if path[-1][1] == 0:
             return False
-        path.append([path[-1][0],path[-1][1]-1])
+        path.append([path[-1][0],path[-1][1]-1,3])
     
     return findRoute(path, grid, nextDir)
         
@@ -53,7 +55,7 @@ def startRoute(entry, grid):
     path.append(entry)
 
     if path[-1][0] != 0:
-        path.append([path[-1][0]-1,path[-1][1]])
+        path.append([path[-1][0]-1,path[-1][1],0])
         if findRoute(path, grid, 0):
             return path
     
@@ -61,7 +63,7 @@ def startRoute(entry, grid):
     path.append(entry)
 
     if path[-1][0] != len(grid)-1:
-        path.append([path[-1][0]+1,path[-1][1]])
+        path.append([path[-1][0]+1,path[-1][1],1])
         if findRoute(path, grid, 1):
             return path
     
@@ -69,7 +71,7 @@ def startRoute(entry, grid):
     path.append(entry)
 
     if path[-1][1] != len(grid[0])-1:
-        path.append([path[-1][0],path[-1][1]+1])
+        path.append([path[-1][0],path[-1][1]+1,2])
         if findRoute(path, grid, 2):
             return path
 
@@ -77,9 +79,42 @@ def startRoute(entry, grid):
     path.append(entry)
 
     if path[-1][1] != 0:
-        path.append([path[-1][0],path[-1][1]-1])
+        path.append([path[-1][0],path[-1][1]-1,3])
         if findRoute(path, grid, 3):
             return path
+
+def getInsideDir(path):
+
+    prevDir = path[0][2]
+
+    left = 0
+    right = 0
+
+    for i in path[1:]:
+        if prevDir == 0:
+            if i[2] == 3:
+                left += 1
+            elif i[2] == 2:
+                right += 1
+        elif prevDir == 1:
+            if i[2] == 2:
+                left += 1
+            elif i[2] == 3:
+                right += 1
+        elif prevDir == 2:
+            if i[2] == 0:
+                left += 1
+            elif i[2] == 1:
+                right += 1
+        elif prevDir == 3:
+            if i[2] == 1:
+                left += 1
+            elif i[2] == 0:
+                right += 1
+        prevDir = i[2]
+    print(left, right)
+    
+    return left > right
 
 
 with open("data.txt", "r") as file:
@@ -87,7 +122,7 @@ with open("data.txt", "r") as file:
     for line in file:
         data.append(list(line[:-1]))
 
-    entry = [0,0]
+    entry = [0,0,0]
 
     for i in enumerate(data):
         try:
@@ -102,3 +137,5 @@ with open("data.txt", "r") as file:
     print(route)
     print("mid num:", len(route)//2)
     print("mid:",route[len(route)//2])
+
+    print(getInsideDir(route))
