@@ -127,7 +127,33 @@ unsigned backTrack(std::string str, std::vector<unsigned> vals)
     return out;
 }
 
+std::string unfold(std::string str)
+{
+    std::string out;
+    
+    for (unsigned i=0; i<4; i++)
+    {
+        out.append(str);
+        out.push_back('?');
+    }
+    out.append(str);
 
+    return out;
+}
+
+std::vector<unsigned> unfold(std::vector<unsigned> vals)
+{
+    std::vector<unsigned> out;
+
+    for (unsigned i=0; i<5; i++)
+    {
+        for (auto i : vals)
+        {
+            out.push_back(i);
+        }
+    }
+    return out;
+}
 
 int main()
 {
@@ -139,8 +165,12 @@ int main()
 
     uint64_t total = 0;
 
+    unsigned test=1;
+
     while (std::getline(ifs, line))
     {
+        std::cout << "test: " << test << '\n';
+        test++;
         std::string str;
         unsigned i;
         for (i=0; i<line.size(); i++)
@@ -167,6 +197,10 @@ int main()
             }
         }
         nums.push_back(std::stoul(numStr));
+
+        str = unfold(str);
+        nums = unfold(nums);
+
         total += backTrack(str, nums);
     }
     std::cout << "result: " << total << '\n';    
