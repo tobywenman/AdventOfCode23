@@ -71,10 +71,11 @@ with open("data.txt", "r") as file:
             else:
                 values = list(map(int, line[char[0]:].split(",")))
                 break
-        
-        total += tryAll(data, values)
+        result = tryAll(data, values)
+        print(result)
+        total += result
     
-    print(total)
+    print("result:",total)
 
 
 
