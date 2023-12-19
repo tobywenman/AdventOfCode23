@@ -3,19 +3,21 @@
 #include <string>
 #include <vector>
 #include <stack>
+#include <unordered_map>
+#include <algorithm>
 
 struct test
 {
     std::string str;
-    unsigned test;
-    unsigned nextVal;
-    unsigned current;
+    uint64_t test;
+    uint64_t nextVal;
+    uint64_t current;
     bool dot;
 };
 
-unsigned backTrack(std::string str, std::vector<unsigned> vals)
+uint64_t backTrack(std::string str, std::vector<uint64_t> vals)
 {
-    unsigned out=0;
+    uint64_t out=0;
 
     std::stack<test> tests;
 
@@ -27,7 +29,7 @@ unsigned backTrack(std::string str, std::vector<unsigned> vals)
     newTest.dot = true;
     newTest.str = str;
 
-    for (unsigned i=0; i<str.size(); i++)
+    for (uint64_t i=0; i<str.size(); i++)
     {
         if (str[i]=='#')
         {
@@ -71,7 +73,7 @@ unsigned backTrack(std::string str, std::vector<unsigned> vals)
             curTest.str[curTest.test] = '#';
         }
 
-        for (unsigned i=curTest.test; i<str.size(); i++)
+        for (uint64_t i=curTest.test; i<str.size(); i++)
         {
             if (curTest.str[i] == '#')
             {
@@ -131,7 +133,7 @@ std::string unfold(std::string str)
 {
     std::string out;
     
-    for (unsigned i=0; i<4; i++)
+    for (uint64_t i=0; i<4; i++)
     {
         out.append(str);
         out.push_back('?');
@@ -141,11 +143,11 @@ std::string unfold(std::string str)
     return out;
 }
 
-std::vector<unsigned> unfold(std::vector<unsigned> vals)
+std::vector<uint64_t> unfold(std::vector<uint64_t> vals)
 {
-    std::vector<unsigned> out;
+    std::vector<uint64_t> out;
 
-    for (unsigned i=0; i<5; i++)
+    for (uint64_t i=0; i<5; i++)
     {
         for (auto i : vals)
         {
@@ -153,6 +155,50 @@ std::vector<unsigned> unfold(std::vector<unsigned> vals)
         }
     }
     return out;
+}
+
+uint64_t iterative(std::string str, std::vector<uint64_t> vals)
+{
+    std::unordered_map<uint64_t,uint64_t> positions;
+    positions[0] = 1;
+
+    for (uint64_t i=0; i<vals.size(); i++)
+    {
+        std::unordered_map<uint64_t,uint64_t> newPos;
+
+        for (auto it=positions.begin(); it!=positions.end(); it++)
+        {
+            auto lowBound = (i+1 >= vals.size()) ? vals.end() : vals.begin()+i+1;
+
+            uint64_t sum=0;
+
+            for (auto it=lowBound; it!=vals.end();it++)
+                sum += *it;
+
+
+            uint64_t top = str.size() + (vals.end()-lowBound) - sum;
+            for (uint64_t j=it->first; j<top; j++)
+            {
+                if (j+vals[i]-1<str.size() && str.substr(j, vals[i]).find('.')==std::string::npos)
+                {
+                    if ((i == vals.size()-1 && str.substr(j+vals[i]).find('#') == std::string::npos) || (i < vals.size()-1 && j+vals[i]<str.size() && str[j+vals[i]] != '#'))
+                    {
+                        newPos[j+vals[i]+1] += it->second;
+                    }
+                }
+                if (str[j] == '#')
+                {
+                    break;
+                }
+            }
+        }
+        positions = newPos;
+    }
+    uint64_t total=0;
+    for (auto i : positions)
+        total += i.second;
+
+    return total;
 }
 
 int main()
@@ -165,14 +211,13 @@ int main()
 
     uint64_t total = 0;
 
-    unsigned test=1;
+    uint64_t test=1;
 
     while (std::getline(ifs, line))
     {
-        std::cout << "test: " << test << '\n';
         test++;
         std::string str;
-        unsigned i;
+        uint64_t i;
         for (i=0; i<line.size(); i++)
         {
             if (line[i] == ' ')
@@ -183,7 +228,7 @@ int main()
         }
 
         std::string numStr;
-        std::vector<unsigned> nums;
+        std::vector<uint64_t> nums;
         for (; i<line.size(); i++)
         {
             if(line[i] != ',')
@@ -201,7 +246,7 @@ int main()
         str = unfold(str);
         nums = unfold(nums);
 
-        total += backTrack(str, nums);
+        total += iterative(str, nums);
     }
     std::cout << "result: " << total << '\n';    
 }
