@@ -58,7 +58,7 @@ bool testMirror(const grid &in, bool vertical, unsigned pos, unsigned offset)
     }
 }
 
-bool find(const grid &in ,unsigned &pos, bool &vertical)
+bool find(const grid &in ,unsigned &pos, bool &vertical, unsigned oldPos, bool oldVert)
 {
     std::vector<bool> vertValid;
     vertValid.resize(in[0].size()-1, true);
@@ -74,7 +74,7 @@ bool find(const grid &in ,unsigned &pos, bool &vertical)
     }
     for (unsigned i=0; i<vertValid.size(); i++)
     {
-        if (vertValid[i])
+        if (vertValid[i] && (i != oldPos || !oldVert))
         {
             pos = i;
             vertical = true;
@@ -96,7 +96,7 @@ bool find(const grid &in ,unsigned &pos, bool &vertical)
     }
     for (unsigned i=0; i<horiValid.size(); i++)
     {
-        if (horiValid[i])
+        if (horiValid[i] && (oldVert || i != oldPos))
         {
             pos = i;
             vertical = false;
@@ -104,6 +104,39 @@ bool find(const grid &in ,unsigned &pos, bool &vertical)
         }
     }
 
+    return false;
+}
+
+bool findSmudge(grid in, unsigned &pos, bool &vert)
+{
+    unsigned oldPos;
+    bool oldVert;
+
+    assert(find(in, oldPos, oldVert, 99999999, false));
+
+    for (unsigned i=0; i<in.size(); i++)
+    {
+        for (unsigned j=0; j<in[0].size(); j++)
+        {
+            bool found;
+            if (in[i][j]=='.')
+            {
+                in[i][j] = '#';
+                found = find(in, pos, vert, oldPos, oldVert);
+                in[i][j] = '.';
+            }
+            else
+            {
+                in[i][j] = '.';
+                found = find(in, pos, vert, oldPos, oldVert);
+                in[i][j] = '#';
+            }
+            if (found)
+            {
+                return true;
+            }
+        }
+    }
     return false;
 }
 
@@ -118,7 +151,7 @@ int main()
     {
         unsigned pos;
         bool vert;
-        assert(find(test, pos, vert));
+        assert(findSmudge(test, pos, vert));
 
         total += (vert) ? pos+1 : (pos+1)*100;
     }
