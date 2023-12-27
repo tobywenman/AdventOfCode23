@@ -8,8 +8,7 @@ using grid = std::vector<std::vector<char>>;
 
 class beams
 {
-    struct beamHead
-    {
+    public:
         enum dirEnum
         {
             up,
@@ -17,11 +16,14 @@ class beams
             left,
             right
         };
-        unsigned row,col;
-        dirEnum curDir;
-    };
+    private:
+        struct beamHead
+        {
+            unsigned row,col;
+            dirEnum curDir;
+        };
     public:
-        beams(const grid &in);
+        beams(const grid &in, dirEnum initDir, unsigned offset);
         void bounce();
         unsigned count();
     private:
@@ -48,7 +50,7 @@ void beams::addUp(unsigned row, unsigned col)
     {
         newHead.row = row-1;
         newHead.col = col;
-        newHead.curDir = beamHead::up;
+        newHead.curDir = beams::up;
         heads.push(newHead);
     }
 }
@@ -59,7 +61,7 @@ void beams::addDown(unsigned row, unsigned col)
     {
         newHead.row = row+1;
         newHead.col = col;
-        newHead.curDir = beamHead::down;
+        newHead.curDir = beams::down;
         heads.push(newHead);
     }
 }
@@ -70,7 +72,7 @@ void beams::addLeft(unsigned row, unsigned col)
     {
         newHead.col = col-1;
         newHead.row = row;
-        newHead.curDir = beamHead::left;
+        newHead.curDir = beams::left;
         heads.push(newHead);
     }
 }
@@ -81,22 +83,44 @@ void beams::addRight(unsigned row, unsigned col)
     {
         newHead.col = col+1;
         newHead.row = row;
-        newHead.curDir = beamHead::right;
+        newHead.curDir = beams::right;
         heads.push(newHead);
     }
 }
 
-beams::beams(const grid &in) : map(in)
+beams::beams(const grid &in, dirEnum initDir, unsigned offset) : map(in)
 {
+    dirs blankDirs = {false, false, false, false};
     dirGrid.resize(in.size());
     for (auto it=dirGrid.begin(); it!=dirGrid.end();it++)
     {
-        it->resize(in[0].size());
+        it->resize(in[0].size(),blankDirs);
     }
     beamHead init;
-    init.row = 0;
-    init.col = 0;
-    init.curDir = beamHead::right;
+
+    switch (initDir)
+    {
+    case beams::down:
+        init.row = 0;
+        init.col = offset;
+        break;
+    case beams::up:
+        init.row = in.size()-1;
+        init.col = offset;
+        break;
+    case beams::right:
+        init.col = 0;
+        init.row = offset;
+        break;
+    case beams::left:
+        init.col = in[0].size()-1;
+        init.row = offset;
+        break;
+    default:
+        break;
+    }
+
+    init.curDir = initDir;
     heads.push(init);
 }
 
@@ -108,7 +132,7 @@ void beams::bounce()
         heads.pop();
         switch (curHead.curDir)
         {
-        case beamHead::up:
+        case beams::up:
             if (!dirGrid[curHead.row][curHead.col].up)
             {
                 dirGrid[curHead.row][curHead.col].up = true;
@@ -137,7 +161,7 @@ void beams::bounce()
                 break;
             }
             break;
-        case beamHead::down:
+        case beams::down:
             if (!dirGrid[curHead.row][curHead.col].down)
             {
                 dirGrid[curHead.row][curHead.col].down = true;
@@ -166,7 +190,7 @@ void beams::bounce()
                 break;
             }
             break;
-        case beamHead::left:
+        case beams::left:
             if (!dirGrid[curHead.row][curHead.col].left)
             {
                 dirGrid[curHead.row][curHead.col].left = true;
@@ -195,7 +219,7 @@ void beams::bounce()
                 break;
             }
             break;
-        case beamHead::right:
+        case beams::right:
             if (!dirGrid[curHead.row][curHead.col].right)
             {
                 dirGrid[curHead.row][curHead.col].right = true;
@@ -291,9 +315,36 @@ int main()
 
     readGrid(ifs, mirrors);
 
-    beams beamGrid(mirrors);
+    unsigned max = 0;
 
-    beamGrid.bounce();
+    for (unsigned i=0; i<mirrors.size(); i++)
+    {
+        beams beamGrid(mirrors, beams::right, i);
+        beamGrid.bounce();
+        unsigned count = beamGrid.count();
+        max = (max < count) ? count : max; 
+    }
+    for (unsigned i=0; i<mirrors.size(); i++)
+    {
+        beams beamGrid(mirrors, beams::left, i);
+        beamGrid.bounce();
+        unsigned count = beamGrid.count();
+        max = (max < count) ? count : max; 
+    }
+    for (unsigned i=0; i<mirrors[0].size(); i++)
+    {
+        beams beamGrid(mirrors, beams::up, i);
+        beamGrid.bounce();
+        unsigned count = beamGrid.count();
+        max = (max < count) ? count : max; 
+    }
+    for (unsigned i=0; i<mirrors[0].size(); i++)
+    {
+        beams beamGrid(mirrors, beams::down, i);
+        beamGrid.bounce();
+        unsigned count = beamGrid.count();
+        max = (max < count) ? count : max; 
+    }
 
-    std::cout << "count: " << beamGrid.count() << '\n';
+    std::cout << "count: " << max << '\n';
 }
